@@ -1,110 +1,91 @@
 import React, { useEffect, useState } from "react";
-import logo from "./logo.svg";
+import { Newbie } from "../../db-types";
+import NewbieCard from "./NewbieCard";
 import "./App.css";
-
-type Dir = "up" | "down";
-
-function ScriptLol(props: {
-    key1: number;
-    key2: string;
-    keyOpt?: string;
-    direction: "up" | "down";
-}) {
-    type primitives =
-        | number
-        | boolean
-        | string
-        | undefined
-        | (null & unknown)
-        | any;
-
-    type literal = "up" | "down" | "left" | "right";
-    type literal2 = "up" | "down" | "sideways";
-    type literal3 = literal | literal2;
-
-    let myCount: number = 5;
-
-    // all of this for typescript typing demonstration purposes
-}
-
-function Counter(props: { direction: Dir }) {
-    const [state, setState] = useState<number>(0);
-    const [bgColor, setBgColor] = useState<string>("red");
-    const bgColors = ["red", "green", "blue"];
-
-    const sideEffectOne = () => {
-        setBgColor(bgColors[Math.floor(Math.random() * bgColors.length)]);
-    };
-
-    useEffect(sideEffectOne, [state]);
-
-    // on mount, alert I appeared
-    useEffect(() => {
-        alert("I appeared!");
-    }, []);
-
-    // on unmount, alert that I disappeared
-    useEffect(() => {
-        return () => {
-            alert("I disappeared!");
-        };
-    }, []);
-
-    useEffect(() => {
-        console.log("hi im still here");
-    });
-
-    return (
-        <div
-            style={{
-                backgroundColor: bgColor,
-            }}
-        >
-            <h2>{state}</h2>
-            <button
-                onClick={() => {
-                    if (props.direction === "up") {
-                        setState(state + 1);
-                    } else {
-                        setState(state - 1);
-                    }
-                }}
-            >
-                Click Me!
-            </button>
-        </div>
-    );
-}
+import axios from "axios";
 
 function App() {
-    const [direction, setDir] = useState<Dir>("up");
-    const [show, setShow] = useState<boolean>(true);
+  const [newbies, setNewbies] = useState<Newbie[]>();
+  const [clicked, setClicked] = useState<boolean>();
 
-    return (
-        <div className='App'>
-            <h1>A Counter App</h1>
-            <button
-                onClick={() => {
-                    setShow(!show);
-                }}
-            >
-                Show/Hide Me!
-            </button>
-            <button
-                onClick={() => {
-                    // toggle from up to down, or down to up
-                    if (direction === "up") {
-                        setDir("down");
-                    } else {
-                        setDir("up");
-                    }
-                }}
-            >
-                Change my Direction!
-            </button>
-            {show ? <Counter direction={direction} /> : <></>}
-        </div>
-    );
+  useEffect(() => {
+    axios
+      .get(`http://localhost:8080/allNewbies`)
+      .then((res) => {
+        const newbs = res.data;
+        setNewbies(newbs);
+      })
+      .catch((err) => console.log(err));
+  }, []);
+
+  function addNewbie(event: React.FormEvent) {
+    event.preventDefault();
+    console.log(event.target);
+    // axios
+    //   .post(`http://localhost:8080/newNewbie`, { netId: netId, newbie: newbie })
+    //   .then((res) => {})
+    //   .catch((err) => console.log(err));
+  }
+
+  //   function addNewbie(netId: string, newbie: Newbie) {
+  //     axios
+  //       .post(`http://localhost:8080/newNewbie`, { netId: netId, newbie: newbie })
+  //       .then((res) => {})
+  //       .catch((err) => console.log(err));
+  //   }
+
+  //   const michelle: Newbie = {
+  //     firstName: "Michelle",
+  //     lastName: "Li",
+  //     netId: "myl39",
+  //     birthday: "10/09/2002",
+  //     year: "junior",
+  //   };
+
+  //   addNewbie(michelle.netId, michelle);
+
+  return (
+    <div className="App">
+      <h1>Newbie Profiles</h1>
+      {newbies?.length !== 0 ? (
+        newbies?.map((newb) => {
+          return (
+            <div key={newb.netId}>
+              <NewbieCard newbie={newb} />
+            </div>
+          );
+        })
+      ) : (
+        <div>No newbies...</div>
+      )}
+
+      <button onClick={() => setClicked(!clicked)}>
+        Click me to add a newbie!
+      </button>
+
+      {clicked ? (
+        <form onSubmit={addNewbie}>
+          <label>First Name</label>
+          <input type="text" name="firstName"></input>
+          <label>Last Name</label>
+          <input type="text" name="lastName"></input>
+          <label>NetId</label>
+          <input type="text" name="netId"></input>
+          <label>Birthday</label>
+          <input type="text" name="birthday"></input>
+          <label>Year</label>
+          <select name="year">
+            <option value="freshman">Freshman</option>
+            <option value="sophmore">Sophmore</option>
+            <option value="junior">Junior</option>
+            <option value="senior">Senior</option>
+          </select>
+        </form>
+      ) : (
+        <></>
+      )}
+    </div>
+  );
 }
 
 export default App;
